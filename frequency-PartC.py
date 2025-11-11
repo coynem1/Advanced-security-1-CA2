@@ -62,12 +62,20 @@ def autoAnalysis(ciphertext: str, cipherFreq: dict[str, float|int], regularFreq:
         "Z": 0
     }
     influence = 1 / len(ciphertext)     # How much a letter influences chances
+    distance = 0.0
 
     cipherSort = sortDict(cipherFreq)
     regularSort = sortDict(regularFreq)
 
-    for c in cipherSort:
-        regularFreq[c] cipherFreq[c]
+    # find confidence score for each letter substitution
+    for i in range(len(regularSort)):
+        distance = abs(cipherFreq[cipherSort[i]] - regularFreq[regularSort[i]])
+
+        # distance = abs(regularFreq[c] - cipherFreq[c]) / influence
+        result[regularSort[i]] = 1 - (distance * influence)
+
+    return result
+    
 
 
 
@@ -82,3 +90,4 @@ FREQ_ORDER = sortDict(LETTER_FREQ)
 cipherFreq = calcFrequency(CIPHER_TEXT)
 print("Frequency:", cipherFreq, "\n")
 
+print(autoAnalysis(CIPHER_TEXT, cipherFreq, LETTER_FREQ))
