@@ -13,7 +13,7 @@ PERCENT = 100   # For calculating
 FREQ_ORDER = [] # Updates later
 
 # Sorts in order of value
-def sortDict(d: dict):
+def sortDict(d: dict) -> list:
     return sorted(d.keys(), key=lambda l: d[l], reverse=True)
 
 # Finds letter frequency of string
@@ -26,6 +26,7 @@ def calcFrequency(text: str):
         "U": 0, "V": 0, "W": 0, "X": 0, "Y": 0,
         "Z": 0
     }
+    letters = list(result.keys())
 
     # loop through and add per occurance
     for c in text:
@@ -34,11 +35,50 @@ def calcFrequency(text: str):
         result[c] += 1 
     
     # divide by len and by 100 for percent
-
+    for key in letters:
+        # result[key] /= len(text)
+        result[key] = (result[key] / len(text)) * PERCENT
 
     return result
+
+# # Adds every value in dictionary
+# def dictSum(d: dict[str, float|int]) -> int:
+#     result = 0
+
+#     # Keep adding every value
+#     for c in list(d.keys()):
+#         result += d[c]
+
+#     return result
+
+# Automatically assigns each letter, with a confidence score
+def autoAnalysis(ciphertext: str, cipherFreq: dict[str, float|int], regularFreq: dict[str, float|int]) -> dict[str, float|int]:
+    result = {
+        "A": 0, "B": 0, "C": 0, "D": 0, "E": 0,
+        "F": 0, "G": 0, "H": 0, "I": 0, "J": 0,
+        "K": 0, "L": 0, "M": 0, "N": 0, "O": 0,
+        "P": 0, "Q": 0, "R": 0, "S": 0, "T": 0,
+        "U": 0, "V": 0, "W": 0, "X": 0, "Y": 0,
+        "Z": 0
+    }
+    influence = 1 / len(ciphertext)     # How much a letter influences chances
+
+    cipherSort = sortDict(cipherFreq)
+    regularSort = sortDict(regularFreq)
+
+    for c in cipherSort:
+        regularFreq[c] cipherFreq[c]
+
+
+
+
+
+# def printCipherText
+
 
 # Sorts in case values change
 FREQ_ORDER = sortDict(LETTER_FREQ)
 
-print(calcFrequency(CIPHER_TEXT))
+cipherFreq = calcFrequency(CIPHER_TEXT)
+print("Frequency:", cipherFreq, "\n")
+
