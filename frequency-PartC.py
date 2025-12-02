@@ -17,7 +17,7 @@ def sortDict(d: dict) -> list:
     return sorted(d.keys(), key=lambda l: d[l], reverse=True)
 
 # Finds letter frequency of string
-def calcFrequency(text: str):
+def calCipherFrequency(text: str):
     result = {
         "A": 0, "B": 0, "C": 0, "D": 0, "E": 0,
         "F": 0, "G": 0, "H": 0, "I": 0, "J": 0,
@@ -41,53 +41,87 @@ def calcFrequency(text: str):
 
     return result
 
-# # Adds every value in dictionary
-# def dictSum(d: dict[str, float|int]) -> int:
-#     result = 0
-
-#     # Keep adding every value
-#     for c in list(d.keys()):
-#         result += d[c]
-
-#     return result
-
-# Automatically assigns each letter, with a confidence score
-def autoAnalysis(ciphertext: str, cipherFreq: dict[str, float|int], regularFreq: dict[str, float|int]) -> dict[str, float|int]:
-    result = {
-        "A": 0, "B": 0, "C": 0, "D": 0, "E": 0,
-        "F": 0, "G": 0, "H": 0, "I": 0, "J": 0,
-        "K": 0, "L": 0, "M": 0, "N": 0, "O": 0,
-        "P": 0, "Q": 0, "R": 0, "S": 0, "T": 0,
-        "U": 0, "V": 0, "W": 0, "X": 0, "Y": 0,
-        "Z": 0
-    }
-    influence = 1 / len(ciphertext)     # How much a letter influences chances
-    distance = 0.0
-
-    cipherSort = sortDict(cipherFreq)
-    regularSort = sortDict(regularFreq)
-
-    # find confidence score for each letter substitution
-    for i in range(len(regularSort)):
-        distance = abs(cipherFreq[cipherSort[i]] - regularFreq[regularSort[i]])
-
-        # distance = abs(regularFreq[c] - cipherFreq[c]) / influence
-        result[regularSort[i]] = 1 - (distance * influence)
-
-    return result
+# Returns true if confident
+def confidenceCheck(cipherFreq: float, normalFreq: float, threshold: float = 3.0) -> bool:
+    if cipherFreq == 0:
+        return False
     
+    return abs(cipherFreq - normalFreq) <= threshold
 
+# Suggests swaps
+def commonLetters(cipherFreq: dict, normalFreq: dict, threshold: float = 3.0) -> dict:
+    result = {chr(c): [] for c in range(ord("A"), ord("Z")+1)}
+    cipherSort = sortDict(cipherFreq)
 
+    # Add each letter it could probably be
+    for c in cipherSort:
+        for n in cipherSort:
+            if confidenceCheck(cipherFreq[c], normalFreq[n], threshold):
+                result[c].append(n)
 
+    print("Possible Mapping (cipher -> normal):")
+    for k, v in result.items():
+        if v:
+            print(f"{k}: {v}")
+    return result
 
+# Automatically swaps using frequency
+def autoSwap(cipherText: str, cipherFreq: dict, normalFreq: dict, threshold: float = 3.0) -> str:
+    result = cipherText[:]  # deep copy
+    cipherSort = sortDict(cipherFreq)
+    normalSort = sortDict(normalFreq)    
 
-# def printCipherText
+    print("Auto mapping:")
+    for i in range(len(cipherSort)):
+        c = cipherSort[i]
+        n = normalSort[i]
+
+        confident = confidenceCheck(cipherFreq[c], normalFreq[n], threshold)
+        print(f"{c} -> {n} \tcipher {cipherFreq[c]:.2f}% \tnormal {normalFreq[n]:.2f}% \t{'SWAPPED' if confident else 'UNKNOWN'}")
+
+        if confident:
+            result = result.replace(c, n.lower())
+        else:
+            result = result.replace(c, ".")
+    return result
 
 
 # Sorts in case values change
 FREQ_ORDER = sortDict(LETTER_FREQ)
 
-cipherFreq = calcFrequency(CIPHER_TEXT)
-print("Frequency:", cipherFreq, "\n")
+cipherFreq = calCipherFrequency(CIPHER_TEXT)
+# print("Frequency:", cipherFreq, "\n")
 
-print(autoAnalysis(CIPHER_TEXT, cipherFreq, LETTER_FREQ))
+result = autoSwap(CIPHER_TEXT, cipherFreq, LETTER_FREQ)
+
+# print(f"\n{result}\n")
+# commonLetters(cipherFreq, LETTER_FREQ)
+
+running = True
+while running:
+    temp = result[:]
+
+    print(f"\n{result}\n")
+    commonLetters(cipherFreq, LETTER_FREQ)
+
+    select = input("\n\nEnter letter to replace (Type 0 to stop): ").lower()
+
+    # stop
+    if select == "0":
+        running = False
+        break
+
+    replace = input("Enter letter to replace with: ").lower()
+
+
+    # if found
+    if result.find(select) == -1 or len(select) != 1:
+        print("ERROR: invalid input")
+        continue
+
+    # Swap
+    temp = temp.replace(replace, "~")
+    temp = temp.replace(select, replace)
+    result = temp.replace("~", select)
+
+
